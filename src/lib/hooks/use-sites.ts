@@ -215,18 +215,20 @@ export function useSiteStatus() {
     }
 
     // Upsert to database with all fields preserved
+    const existing = existingStatus as UserSiteStatus | null
     const { error } = await supabase
       .from('user_site_status')
       .upsert({
         user_id: user.id,
         site_id: siteId,
-        want: existingStatus?.want ?? false,
-        dived: field === 'dived' ? newValue : (existingStatus?.dived ?? false),
-        favorite: field === 'favorite' ? newValue : (existingStatus?.favorite ?? false),
-        notes: existingStatus?.notes ?? null,
-        date_dived: existingStatus?.date_dived ?? null,
+        want: existing?.want ?? false,
+        dived: field === 'dived' ? newValue : (existing?.dived ?? false),
+        favorite: field === 'favorite' ? newValue : (existing?.favorite ?? false),
+        notes: existing?.notes ?? null,
+        date_dived: existing?.date_dived ?? null,
         updated_at: new Date().toISOString(),
-      }, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any, {
         onConflict: 'user_id,site_id',
       })
 
@@ -277,7 +279,7 @@ export function useSiteStatus() {
     }
 
     // First, fetch current status to preserve other fields
-    const { data: existingStatus, error: fetchError } = await supabase
+    const { data: existingStatusData, error: fetchError } = await supabase
       .from('user_site_status')
       .select('*')
       .eq('user_id', user.id)
@@ -289,18 +291,20 @@ export function useSiteStatus() {
     }
 
     // Upsert to database with all fields preserved
+    const existing = existingStatusData as UserSiteStatus | null
     const { error } = await supabase
       .from('user_site_status')
       .upsert({
         user_id: user.id,
         site_id: siteId,
-        want: existingStatus?.want ?? false,
-        dived: existingStatus?.dived ?? false,
-        favorite: existingStatus?.favorite ?? false,
+        want: existing?.want ?? false,
+        dived: existing?.dived ?? false,
+        favorite: existing?.favorite ?? false,
         notes,
-        date_dived: existingStatus?.date_dived ?? null,
+        date_dived: existing?.date_dived ?? null,
         updated_at: new Date().toISOString(),
-      }, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any, {
         onConflict: 'user_id,site_id',
       })
 
