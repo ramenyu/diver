@@ -89,7 +89,8 @@ function createMarkerIcon(site: SiteWithStatus, isSelected: boolean) {
 }
 
 // Custom cluster icon - shows status dots if cluster contains user-marked sites
-function createClusterIcon(cluster: L.MarkerCluster) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function createClusterIcon(cluster: any) {
   const count = cluster.getChildCount()
   let size = 32
   let fontSize = 11
