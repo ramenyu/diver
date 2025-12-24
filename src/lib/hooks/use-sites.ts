@@ -104,7 +104,7 @@ export function useSites() {
 
         // Merge statuses with sites
         const statusMap = new Map<string, UserSiteStatus>()
-        statuses?.forEach((status) => {
+        ;(statuses as UserSiteStatus[] | null)?.forEach((status) => {
           statusMap.set(status.site_id, status)
         })
 
