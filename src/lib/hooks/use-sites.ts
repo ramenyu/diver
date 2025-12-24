@@ -3,7 +3,7 @@
 import { useEffect, useCallback } from 'react'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { useAppStore } from '@/lib/store'
-import type { UserSiteStatus, SiteWithStatus } from '@/lib/types/database'
+import type { Site, UserSiteStatus, SiteWithStatus } from '@/lib/types/database'
 import seedSites from '../../../seed_sites.json'
 
 // Local storage key for demo mode status persistence
@@ -84,18 +84,19 @@ export function useSites() {
       const { data: { user } } = await supabase.auth.getUser()
       
       // Fetch all sites
-      const { data: sites, error: sitesError } = await supabase
+      const { data: sitesData, error: sitesError } = await supabase
         .from('sites')
         .select('*')
         .order('name')
 
       if (sitesError) throw sitesError
 
-      let sitesWithStatus: SiteWithStatus[] = sites || []
+      const sites = sitesData as Site[] | null
+      let sitesWithStatus: SiteWithStatus[] = (sites || []).map(s => ({ ...s, status: null }))
 
       // If user is logged in, fetch their statuses
-      if (user) {
-        const { data: statuses, error: statusError } = await supabase
+      if (user && sites) {
+        const { data: statusesData, error: statusError } = await supabase
           .from('user_site_status')
           .select('*')
           .eq('user_id', user.id)
@@ -103,15 +104,16 @@ export function useSites() {
         if (statusError) throw statusError
 
         // Merge statuses with sites
+        const statuses = statusesData as UserSiteStatus[] | null
         const statusMap = new Map<string, UserSiteStatus>()
-        ;(statuses as UserSiteStatus[] | null)?.forEach((status) => {
+        statuses?.forEach((status) => {
           statusMap.set(status.site_id, status)
         })
 
-        sitesWithStatus = sites?.map((site) => ({
+        sitesWithStatus = sites.map((site) => ({
           ...site,
           status: statusMap.get(site.id) || null,
-        })) || []
+        }))
       }
 
       setSites(sitesWithStatus)
